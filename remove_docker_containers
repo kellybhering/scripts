@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Motivation: when there are many containers created from an image for some reason, it's hard to remove one by one
+# How to run: ./remove_docker_containers
+
+echo "Choose a image name to remove containers"
+docker ps -a | awk '{ print $2 }'
+read -p "Type the image name to consider when removing the containers: "
+container_to_remove=$REPLY
+
+printf "%-15s %20s %35s\n" "ID" "Container" "Date"
+docker ps -a | grep $container_to_remove | awk '{ columns="%-15s %20s %35s\n"; printf columns, $1, $2, $7 $8 }'
+
+read -p "Are you sure? (y/n): "
+
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  ids_to_remove=$(docker ps -a | grep $container_to_remove | awk '{ print $1 }' | xargs)
+ 
+  for id in $ids_to_remove; do
+    docker stop $id  
+    docker rm $id
+  done
+
+  echo "Containers removed successfully!"
+fi
